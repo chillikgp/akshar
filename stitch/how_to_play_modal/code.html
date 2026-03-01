@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html lang="hi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#197fe6",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111921",
+                        "correct": "#6aaa64",
+                        "present": "#c9b458",
+                        "absent": "#787c7e",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<title>अक्षर - कैसे खेलें</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 overflow-hidden h-screen w-screen flex flex-col">
+<!-- Header Section -->
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 justify-between border-b border-slate-200 dark:border-slate-800">
+<div class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined cursor-pointer">menu</span>
+</div>
+<h1 class="text-slate-900 dark:text-slate-100 text-2xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center">अक्षर</h1>
+<div class="flex w-12 items-center justify-end">
+<button class="flex items-center justify-center rounded-lg h-12 w-12 bg-transparent text-slate-900 dark:text-slate-100">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+</header>
+<!-- Background Game Grid (Blurred) -->
+<main class="flex-1 p-4 flex flex-col items-center justify-center opacity-40 grayscale">
+<div class="grid grid-cols-5 gap-2 mb-2">
+<div class="w-14 h-14 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-2xl font-bold">म</div>
+<div class="w-14 h-14 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-2xl font-bold">क</div>
+<div class="w-14 h-14 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-2xl font-bold">ल</div>
+<div class="w-14 h-14 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-2xl font-bold">न</div>
+<div class="w-14 h-14 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-2xl font-bold">म</div>
+</div>
+<!-- Simplified grid for visual placeholder -->
+<div class="grid grid-cols-5 gap-2 mb-2">
+<div class="w-14 h-14 border-2 border-slate-300 dark:border-slate-700"></div>
+<div class="w-14 h-14 border-2 border-slate-300 dark:border-slate-700"></div>
+<div class="w-14 h-14 border-2 border-slate-300 dark:border-slate-700"></div>
+<div class="w-14 h-14 border-2 border-slate-300 dark:border-slate-700"></div>
+<div class="w-14 h-14 border-2 border-slate-300 dark:border-slate-700"></div>
+</div>
+</main>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+<div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+<!-- Close Button Top Right -->
+<button class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+<!-- Modal Content -->
+<div class="overflow-y-auto p-6 pt-10">
+<h2 class="text-slate-900 dark:text-slate-100 text-3xl font-bold text-center mb-6">कैसे खेलें</h2>
+<div class="space-y-4 text-center">
+<p class="text-slate-600 dark:text-slate-300 text-lg leading-relaxed">
+                        6 प्रयासों में 5 अक्षरों वाले सही शब्द का अनुमान लगाएं।
+                    </p>
+<p class="text-slate-500 dark:text-slate-400 text-sm">
+                        प्रत्येक अनुमान के बाद, टाइल्स का रंग बदल जाएगा यह दिखाने के लिए कि आपका अनुमान शब्द के कितना करीब था।
+                    </p>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-800 my-8"></div>
+<!-- Examples Section -->
+<div class="space-y-8">
+<h3 class="text-slate-900 dark:text-slate-100 text-lg font-bold">उदाहरण</h3>
+<!-- Example 1: Green -->
+<div class="space-y-3">
+<div class="flex gap-2">
+<div class="w-12 h-12 bg-correct text-white border-2 border-correct flex items-center justify-center text-xl font-bold rounded">न</div>
+<div class="w-12 h-12 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-xl font-bold rounded">म</div>
+<div class="w-12 h-12 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-xl font-bold rounded">क</div>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm">
+                            अक्षर <span class="font-bold">न</span> शब्द में है और सही स्थान पर है।
+                        </p>
+</div>
+<!-- Example 2: Yellow -->
+<div class="space-y-3">
+<div class="flex gap-2">
+<div class="w-12 h-12 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-xl font-bold rounded">क</div>
+<div class="w-12 h-12 bg-present text-white border-2 border-present flex items-center justify-center text-xl font-bold rounded">ल</div>
+<div class="w-12 h-12 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-xl font-bold rounded">म</div>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm">
+                            अक्षर <span class="font-bold">ल</span> शब्द में है लेकिन गलत स्थान पर है।
+                        </p>
+</div>
+<!-- Example 3: Grey -->
+<div class="space-y-3">
+<div class="flex gap-2">
+<div class="w-12 h-12 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-xl font-bold rounded">श</div>
+<div class="w-12 h-12 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-xl font-bold rounded">ह</div>
+<div class="w-12 h-12 bg-absent text-white border-2 border-absent flex items-center justify-center text-xl font-bold rounded">र</div>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm">
+                            अक्षर <span class="font-bold">र</span> शब्द में कहीं भी नहीं है।
+                        </p>
+</div>
+</div>
+<div class="mt-10 mb-2">
+<button class="w-full py-4 bg-primary text-white font-bold rounded-lg text-lg hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+                        खेल शुरू करें
+                    </button>
+</div>
+</div>
+<!-- Bottom Handle for iOS look -->
+<div class="flex h-5 w-full items-center justify-center pb-2">
+<div class="h-1.5 w-12 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+</div>
+</div>
+</div>
+</body></html>

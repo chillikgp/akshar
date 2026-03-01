@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html class="light" lang="hi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>अक्षर - जीत की बधाई</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#197fe6",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111921",
+                        "success": "#4caf50",
+                        "warning": "#ffc107",
+                        "error": "#f44336"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "system-ui", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .confetti-overlay {
+            background-image: radial-gradient(circle at 20% 30%, rgba(25, 127, 230, 0.1) 1px, transparent 1px),
+                              radial-gradient(circle at 80% 70%, rgba(76, 175, 80, 0.1) 1px, transparent 1px),
+                              radial-gradient(circle at 50% 10%, rgba(255, 193, 7, 0.1) 1px, transparent 1px),
+                              radial-gradient(circle at 10% 90%, rgba(244, 67, 54, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-screen w-full flex-col overflow-hidden max-w-[480px] mx-auto shadow-2xl bg-slate-50 dark:bg-slate-950">
+<!-- Header -->
+<div class="flex items-center bg-white dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 justify-between">
+<div class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined text-2xl">close</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight flex-1 text-center">अक्षर</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex items-center justify-center rounded-lg h-12 bg-transparent text-slate-900 dark:text-slate-100 p-0">
+<span class="material-symbols-outlined text-2xl">help</span>
+</button>
+</div>
+</div>
+<!-- Main Content Area with Confetti Background -->
+<div class="flex-1 flex flex-col items-center justify-center px-6 py-8 confetti-overlay">
+<div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 w-full p-8 flex flex-col items-center">
+<!-- Win Badge / Icon -->
+<div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-5xl font-bold">celebration</span>
+</div>
+<h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-3xl font-extrabold leading-tight text-center pb-2">बधाई हो!</h1>
+<p class="text-slate-500 dark:text-slate-400 text-lg font-medium leading-normal pb-6 text-center">आपने शब्द ढूंढ लिया</p>
+<!-- Score Card -->
+<div class="bg-slate-50 dark:bg-slate-800/50 rounded-lg px-8 py-4 mb-8 text-center border border-slate-200 dark:border-slate-700">
+<p class="text-slate-500 dark:text-slate-400 text-sm uppercase tracking-wider font-bold mb-1">आपका स्कोर</p>
+<h2 class="text-primary text-4xl font-black leading-tight">4/6</h2>
+</div>
+<!-- Grid Visual Representation -->
+<div class="flex flex-col gap-2 mb-10 items-center bg-slate-50 dark:bg-slate-800/30 p-4 rounded-xl">
+<div class="flex gap-1">
+<span class="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm"></span>
+<span class="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm"></span>
+<span class="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm"></span>
+<span class="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm"></span>
+<span class="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm"></span>
+</div>
+<div class="flex gap-1">
+<span class="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm"></span>
+<span class="w-5 h-5 bg-warning rounded-sm"></span>
+<span class="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm"></span>
+<span class="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm"></span>
+<span class="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm"></span>
+</div>
+<div class="flex gap-1">
+<span class="w-5 h-5 bg-success rounded-sm"></span>
+<span class="w-5 h-5 bg-success rounded-sm"></span>
+<span class="w-5 h-5 bg-warning rounded-sm"></span>
+<span class="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm"></span>
+<span class="w-5 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm"></span>
+</div>
+<div class="flex gap-1">
+<span class="w-5 h-5 bg-success rounded-sm"></span>
+<span class="w-5 h-5 bg-success rounded-sm"></span>
+<span class="w-5 h-5 bg-success rounded-sm"></span>
+<span class="w-5 h-5 bg-success rounded-sm"></span>
+<span class="w-5 h-5 bg-success rounded-sm"></span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="w-full space-y-3">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined">share</span>
+                        साझा करें
+                    </button>
+<button class="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors border border-slate-200 dark:border-slate-700">
+                        अगला स्तर
+                        <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Navigation Bar -->
+<div class="flex gap-2 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pb-8 pt-3">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">home</span>
+<p class="text-xs font-bold leading-normal tracking-tight">होम</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined text-2xl">bar_chart</span>
+<p class="text-xs font-medium leading-normal tracking-tight">आंकड़े</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<p class="text-xs font-medium leading-normal tracking-tight">सेटिंग्स</p>
+</a>
+</div>
+</div>
+</body></html>

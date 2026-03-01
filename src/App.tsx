@@ -1,0 +1,259 @@
+import { useEffect, useCallback, useRef, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import confetti from 'canvas-confetti';
+import { useGameStore } from './store/useGameStore';
+import { Header } from './components/Header';
+import { GameGrid } from './components/GameGrid';
+import { Keyboard } from './components/Keyboard';
+import { Toast } from './components/Toast';
+import { GameModal } from './components/GameModal';
+import { HintModal } from './components/HintModal';
+import { HowToPlayModal } from './components/HowToPlayModal';
+
+const FIRST_VISIT_KEY = 'akshar_firstVisit';
+
+export default function App() {
+    const { levelNumber } = useParams<{ levelNumber: string }>();
+    const navigate = useNavigate();
+
+    const [showHowToPlay, setShowHowToPlay] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const prevStatusRef = useRef<string>('playing');
+    const initializedRef = useRef(false);
+
+    const {
+        initialized,
+        currentLevel,
+        levels,
+        targetConsonants,
+        matraPattern,
+        maxAttempts,
+        guesses,
+        evaluations,
+        currentGuess,
+        status,
+        keyboardState,
+        toastMessage,
+        shakeRow,
+        revealingRow,
+        isHintOpen,
+        initGame,
+        loadLevel,
+        addLetter,
+        removeLetter,
+        submitGuess,
+        nextLevel,
+        restartLevel,
+        openHint,
+        closeHint,
+        clearToast,
+        clearShake,
+        clearReveal,
+    } = useGameStore();
+
+    // Initialize game on mount with URL level (if present)
+    useEffect(() => {
+        if (!initializedRef.current) {
+            initializedRef.current = true;
+            const urlLevel = levelNumber ? parseInt(levelNumber, 10) : undefined;
+            initGame(urlLevel);
+        }
+    }, [initGame, levelNumber]);
+
+    // Sync URL when level changes after init (e.g. navigating to `/` should redirect to current level)
+    useEffect(() => {
+        if (initialized) {
+            const expectedPath = `/level/${currentLevel}`;
+            const currentPath = levelNumber ? `/level/${levelNumber}` : '/';
+
+            if (currentPath !== expectedPath) {
+                navigate(expectedPath, { replace: true });
+            }
+        }
+    }, [initialized, currentLevel, levelNumber, navigate]);
+
+    // Handle URL changes after initialization (user manually changes URL)
+    useEffect(() => {
+        if (initialized && levelNumber) {
+            const urlLevel = parseInt(levelNumber, 10);
+            if (!isNaN(urlLevel) && urlLevel !== currentLevel) {
+                if (urlLevel >= 1 && urlLevel <= levels.length) {
+                    loadLevel(urlLevel);
+                } else {
+                    // Invalid level → redirect to level 1
+                    navigate('/level/1', { replace: true });
+                    loadLevel(1);
+                }
+            }
+        }
+    }, [initialized, levelNumber, currentLevel, levels.length, loadLevel, navigate]);
+
+    // Show how-to-play on first visit
+    useEffect(() => {
+        if (initialized) {
+            const hasVisited = localStorage.getItem(FIRST_VISIT_KEY);
+            if (!hasVisited) {
+                setShowHowToPlay(true);
+                localStorage.setItem(FIRST_VISIT_KEY, 'true');
+            }
+        }
+    }, [initialized]);
+
+    // Confetti trigger: only when status transitions from "playing" → "won"
+    useEffect(() => {
+        if (prevStatusRef.current === 'playing' && status === 'won') {
+            const timer = setTimeout(() => {
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#197fe6', '#6aaa64', '#c9b458', '#f59e0b', '#ef4444'],
+                });
+            }, 800);
+            return () => clearTimeout(timer);
+        }
+        prevStatusRef.current = status;
+    }, [status]);
+
+    // Show modal when game ends
+    useEffect(() => {
+        if (status === 'won' || status === 'lost') {
+            const delay = status === 'won' ? 1500 : 500;
+            const timer = setTimeout(() => {
+                setShowModal(true);
+            }, delay);
+            return () => clearTimeout(timer);
+        } else {
+            setShowModal(false);
+        }
+    }, [status]);
+
+    const handleKeyPress = useCallback(
+        (key: string) => {
+            addLetter(key);
+        },
+        [addLetter]
+    );
+
+    const handleEnter = useCallback(() => {
+        submitGuess();
+    }, [submitGuess]);
+
+    const handleBackspace = useCallback(() => {
+        removeLetter();
+    }, [removeLetter]);
+
+    const handleNextLevel = useCallback(() => {
+        setShowModal(false);
+        closeHint();
+        const newLevel = nextLevel();
+        if (newLevel !== null) {
+            navigate(`/level/${newLevel}`, { replace: true });
+        }
+    }, [nextLevel, navigate, closeHint]);
+
+    const handleRestart = useCallback(() => {
+        setShowModal(false);
+        closeHint();
+        restartLevel();
+    }, [restartLevel, closeHint]);
+
+    const handleClearToast = useCallback(() => {
+        clearToast();
+    }, [clearToast]);
+
+    const handleShakeEnd = useCallback(() => {
+        clearShake();
+    }, [clearShake]);
+
+    const handleRevealEnd = useCallback(() => {
+        clearReveal();
+    }, [clearReveal]);
+
+    const handleHelpClick = useCallback(() => {
+        closeHint();
+        setShowHowToPlay(true);
+    }, [closeHint]);
+
+    const handleHintClick = useCallback(() => {
+        if (status === 'playing') {
+            setShowHowToPlay(false);
+            openHint();
+        }
+    }, [status, openHint]);
+
+    // Loading state
+    if (!initialized) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-background-light">
+                <div className="text-center">
+                    <h1 className="text-4xl font-extrabold text-primary mb-2">अक्षर</h1>
+                    <p className="text-slate-500 text-sm animate-pulse">लोड हो रहा है...</p>
+                </div>
+            </div>
+        );
+    }
+
+    const currentLevelData = levels.find((l) => l.level === currentLevel);
+
+    return (
+        <div className="relative flex h-[100dvh] w-full flex-col max-w-md mx-auto shadow-2xl bg-white">
+            <Header
+                currentLevel={currentLevel}
+                totalLevels={levels.length}
+                onHelpClick={handleHelpClick}
+                onHintClick={handleHintClick}
+            />
+
+            <main className="flex-1 flex flex-col items-center justify-start py-2 px-4 relative overflow-hidden">
+                <Toast message={toastMessage} onDismiss={handleClearToast} />
+
+                <GameGrid
+                    guesses={guesses}
+                    evaluations={evaluations}
+                    currentGuess={currentGuess}
+                    matraPattern={matraPattern}
+                    targetLength={targetConsonants.length}
+                    maxAttempts={maxAttempts}
+                    shakeRow={shakeRow}
+                    revealingRow={revealingRow}
+                    onShakeEnd={handleShakeEnd}
+                    onRevealEnd={handleRevealEnd}
+                />
+            </main>
+
+            <Keyboard
+                keyboardState={keyboardState}
+                onKeyPress={handleKeyPress}
+                onEnter={handleEnter}
+                onBackspace={handleBackspace}
+            />
+
+            {showModal && (
+                <GameModal
+                    status={status}
+                    currentLevel={currentLevel}
+                    totalLevels={levels.length}
+                    evaluations={evaluations}
+                    targetWord={currentLevelData?.word || ''}
+                    guessCount={guesses.length}
+                    maxAttempts={maxAttempts}
+                    onNextLevel={handleNextLevel}
+                    onRestart={handleRestart}
+                    onClose={() => setShowModal(false)}
+                />
+            )}
+
+            <HintModal
+                isOpen={isHintOpen}
+                hint={currentLevelData?.hint || ''}
+                onClose={closeHint}
+            />
+
+            <HowToPlayModal
+                isOpen={showHowToPlay}
+                onClose={() => setShowHowToPlay(false)}
+            />
+        </div>
+    );
+}
