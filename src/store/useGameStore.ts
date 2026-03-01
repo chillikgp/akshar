@@ -101,67 +101,81 @@ export const useGameStore = create<GameState>((set, get) => ({
     isHintOpen: false,
 
     initGame: async (urlLevel?: number) => {
-        const levels = await parseLevels();
-        const savedCompleted = loadFromStorage<number[]>(STORAGE_KEYS.completedLevels, []);
-        const cleanedCompleted = savedCompleted.filter((l) => l <= levels.length);
+        try {
+            const levels = await parseLevels();
+            const savedCompleted = loadFromStorage<number[]>(STORAGE_KEYS.completedLevels, []);
+            const cleanedCompleted = savedCompleted.filter((l) => l <= levels.length);
 
-        // Determine which level to load
-        let targetLevel: number;
+            // Determine which level to load
+            let targetLevel: number;
 
-        if (urlLevel !== undefined) {
-            // URL takes priority — validate it
-            targetLevel = (urlLevel >= 1 && urlLevel <= levels.length) ? urlLevel : 1;
-        } else {
-            // Fall back to saved progress
-            const savedLevel = loadFromStorage<number>(STORAGE_KEYS.currentLevel, 1);
-            targetLevel = (savedLevel >= 1 && savedLevel <= levels.length) ? savedLevel : 1;
+            if (urlLevel !== undefined) {
+                // URL takes priority — validate it
+                targetLevel = (urlLevel >= 1 && urlLevel <= levels.length) ? urlLevel : 1;
+            } else {
+                // Fall back to saved progress
+                const savedLevel = loadFromStorage<number>(STORAGE_KEYS.currentLevel, 1);
+                targetLevel = (savedLevel >= 1 && savedLevel <= levels.length) ? savedLevel : 1;
+            }
+
+            const level = levels.find((l) => l.level === targetLevel);
+            if (!level) return;
+
+            saveToStorage(STORAGE_KEYS.currentLevel, targetLevel);
+
+            set({
+                levels,
+                initialized: true,
+                currentLevel: targetLevel,
+                targetConsonants: level.consonants,
+                targetKey: level.consonants.join('|'),
+                matraPattern: level.matraPattern,
+                maxAttempts: level.consonants.length + 2,
+                guesses: [],
+                evaluations: [],
+                currentGuess: [],
+                status: 'playing',
+                keyboardState: {},
+                completedLevels: cleanedCompleted,
+                isHintOpen: false,
+            });
+        } catch (error) {
+            console.error("Game initialization failed:", error);
         }
-
-        const level = levels.find((l) => l.level === targetLevel);
-        if (!level) return;
-
-        saveToStorage(STORAGE_KEYS.currentLevel, targetLevel);
-
-        set({
-            levels,
-            initialized: true,
-            currentLevel: targetLevel,
-            targetConsonants: level.consonants,
-            targetKey: level.consonants.join('|'),
-            matraPattern: level.matraPattern,
-            maxAttempts: level.consonants.length + 2,
-            guesses: [],
-            evaluations: [],
-            currentGuess: [],
-            status: 'playing',
-            keyboardState: {},
-            completedLevels: cleanedCompleted,
-            isHintOpen: false,
-        });
     },
 
     loadLevel: (levelNum: number) => {
-        const { levels } = get();
-        const validLevel = (levelNum >= 1 && levelNum <= levels.length) ? levelNum : 1;
-        const level = levels.find((l) => l.level === validLevel);
-        if (!level) return;
+        try {
+            const { levels } = get();
+            if (levels.length === 0) return;
 
-        saveToStorage(STORAGE_KEYS.currentLevel, validLevel);
+            const validLevel = (levelNum >= 1 && levelNum <= levels.length) ? levelNum : 1;
+            const level = levels.find((l) => l.level === validLevel);
 
-        set({
-            currentLevel: validLevel,
-            targetConsonants: level.consonants,
-            targetKey: level.consonants.join('|'),
-            matraPattern: level.matraPattern,
-            maxAttempts: level.consonants.length + 2,
-            guesses: [],
-            evaluations: [],
-            currentGuess: [],
-            status: 'playing',
-            keyboardState: {},
-            revealingRow: null,
-            isHintOpen: false,
-        });
+            if (!level) {
+                console.error(`Level ${validLevel} not found in store.`);
+                return;
+            }
+
+            saveToStorage(STORAGE_KEYS.currentLevel, validLevel);
+
+            set({
+                currentLevel: validLevel,
+                targetConsonants: level.consonants,
+                targetKey: level.consonants.join('|'),
+                matraPattern: level.matraPattern,
+                maxAttempts: level.consonants.length + 2,
+                guesses: [],
+                evaluations: [],
+                currentGuess: [],
+                status: 'playing',
+                keyboardState: {},
+                revealingRow: null,
+                isHintOpen: false,
+            });
+        } catch (error) {
+            console.error("Level loading failed:", error);
+        }
     },
 
     addLetter: (letter: string) => {
@@ -255,23 +269,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         const level = levels.find((l) => l.level === nextLevelNum);
         if (!level) return null;
 
-        saveToStorage(STORAGE_KEYS.currentLevel, nextLevelNum);
-
-        set({
-            currentLevel: nextLevelNum,
-            targetConsonants: level.consonants,
-            targetKey: level.consonants.join('|'),
-            matraPattern: level.matraPattern,
-            maxAttempts: level.consonants.length + 2,
-            guesses: [],
-            evaluations: [],
-            currentGuess: [],
-            status: 'playing',
-            keyboardState: {},
-            revealingRow: null,
-            isHintOpen: false,
-        });
-
+        // Return the number but do NOT update state here.
+        // App.tsx effect will handle navigation and loadLevel.
         return nextLevelNum;
     },
 

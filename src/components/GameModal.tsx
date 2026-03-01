@@ -121,8 +121,13 @@ export function GameModal({
 
                         {isWin && !isLastLevel && (
                             <button
-                                onClick={onNextLevel}
-                                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors border border-slate-200 cursor-pointer"
+                                onClick={(e) => {
+                                    const btn = e.currentTarget;
+                                    btn.disabled = true;
+                                    btn.style.opacity = '0.5';
+                                    onNextLevel();
+                                }}
+                                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors border border-slate-200 cursor-pointer disabled:cursor-not-allowed"
                             >
                                 अगला स्तर
                                 <span className="material-symbols-outlined">arrow_forward</span>

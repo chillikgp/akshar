@@ -20,6 +20,7 @@ export default function App() {
     const [showModal, setShowModal] = useState(false);
     const prevStatusRef = useRef<string>('playing');
     const initializedRef = useRef(false);
+    const isNavigatingRef = useRef(false);
 
     const {
         initialized,
@@ -144,11 +145,24 @@ export default function App() {
     }, [removeLetter]);
 
     const handleNextLevel = useCallback(() => {
-        setShowModal(false);
-        closeHint();
-        const newLevel = nextLevel();
-        if (newLevel !== null) {
-            navigate(`/level/${newLevel}`, { replace: true });
+        if (isNavigatingRef.current) return;
+
+        try {
+            const nextNum = nextLevel();
+            if (nextNum !== null) {
+                isNavigatingRef.current = true;
+                setShowModal(false);
+                closeHint();
+
+                // Allow state cleanup before navigation
+                setTimeout(() => {
+                    navigate(`/level/${nextNum}`, { replace: true });
+                    isNavigatingRef.current = false;
+                }, 100);
+            }
+        } catch (e) {
+            console.error("Next level navigation failed:", e);
+            isNavigatingRef.current = false;
         }
     }, [nextLevel, navigate, closeHint]);
 
@@ -195,6 +209,18 @@ export default function App() {
     }
 
     const currentLevelData = levels.find((l) => l.level === currentLevel);
+
+    // Defensive check: if we somehow lost the level data during transition
+    if (initialized && !currentLevelData) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-background-light">
+                <div className="text-center">
+                    <h1 className="text-4xl font-extrabold text-primary mb-2">अक्षर</h1>
+                    <p className="text-slate-500 text-sm">प्रतीक्षा करें...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="relative flex h-[100dvh] w-full flex-col max-w-md mx-auto shadow-2xl bg-white">
