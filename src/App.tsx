@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { useGameStore } from './store/useGameStore';
 import { Header } from './components/Header';
@@ -11,10 +11,12 @@ import { HintModal } from './components/HintModal';
 import { HowToPlayModal } from './components/HowToPlayModal';
 
 const FIRST_VISIT_KEY = 'akshar_firstVisit';
+const STORAGE_KEYS = { currentLevel: 'akshar_currentLevel' };
 
 export default function App() {
     const { levelNumber } = useParams<{ levelNumber: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [showHowToPlay, setShowHowToPlay] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -52,46 +54,50 @@ export default function App() {
         clearReveal,
     } = useGameStore();
 
-    // 1. Initialize game data (CSV load)
+    // 1. Core Initialization: Fetch levels and status
     useEffect(() => {
         if (!initializedRef.current) {
             initializedRef.current = true;
-            const urlLevel = levelNumber ? parseInt(levelNumber, 10) : undefined;
-            initGame(urlLevel);
+            initGame();
         }
-    }, [initGame, levelNumber]);
+    }, [initGame]);
 
-    // 2. Sync URL when status or level changes internally (e.g. init finish)
+    // 2. Routing Logic: Determine target level when at root "/" or when levels load
     useEffect(() => {
-        if (initialized && levels.length > 0) {
-            const expectedPath = `/level/${currentLevel}`;
-            const currentPath = levelNumber ? `/level/${levelNumber}` : '/';
-
-            if (currentPath !== expectedPath) {
-                navigate(expectedPath, { replace: true });
+        if (initialized && levels.length > 0 && location.pathname === '/') {
+            // Priority: LocalStorage > Fallback level 1
+            const savedRaw = localStorage.getItem(STORAGE_KEYS.currentLevel);
+            let targetLevel = 1;
+            if (savedRaw) {
+                const parsed = parseInt(JSON.parse(savedRaw), 10);
+                if (!isNaN(parsed) && parsed >= 1 && parsed <= levels.length) {
+                    targetLevel = parsed;
+                }
             }
+            navigate(`/level/${targetLevel}`, { replace: true });
         }
-    }, [initialized, currentLevel, levelNumber, levels.length, navigate]);
+    }, [initialized, levels, location.pathname, navigate]);
 
-    // 3. SINGLE SOURCE OF TRUTH: Handle URL changes and trigger loadLevel
+    // 3. SINGLE SOURCE OF TRUTH: URL Observer
     useEffect(() => {
-        // Only load if initialized AND levels are actually loaded in the store
         if (initialized && levels.length > 0 && levelNumber) {
             const urlLevel = parseInt(levelNumber, 10);
 
-            // Strictly the ONLY place loadLevel is called based on Route Param
-            if (!isNaN(urlLevel) && urlLevel !== currentLevel) {
-                if (urlLevel >= 1 && urlLevel <= levels.length) {
-                    loadLevel(urlLevel);
-                } else {
-                    // Invalid level → redirect to level 1 (Effect will re-run)
-                    navigate('/level/1', { replace: true });
-                }
+            // Validation & Parsing
+            if (isNaN(urlLevel) || urlLevel < 1 || urlLevel > levels.length) {
+                // Invalid URL → Auto-correct to level 1
+                navigate('/level/1', { replace: true });
+                return;
+            }
+
+            // Sync Store with URL if different
+            if (urlLevel !== currentLevel) {
+                loadLevel(urlLevel);
             }
         }
-    }, [initialized, levelNumber, currentLevel, levels.length, loadLevel, navigate]);
+    }, [initialized, levels, levelNumber, currentLevel, loadLevel, navigate]);
 
-    // Show how-to-play on first visit
+    // First visit help
     useEffect(() => {
         if (initialized) {
             const hasVisited = localStorage.getItem(FIRST_VISIT_KEY);
@@ -102,7 +108,7 @@ export default function App() {
         }
     }, [initialized]);
 
-    // Confetti trigger
+    // Confetti
     useEffect(() => {
         if (prevStatusRef.current === 'playing' && status === 'won') {
             const timer = setTimeout(() => {
@@ -118,7 +124,7 @@ export default function App() {
         prevStatusRef.current = status;
     }, [status]);
 
-    // Show modal when game ends
+    // Game End Modal
     useEffect(() => {
         if (status === 'won' || status === 'lost') {
             const delay = status === 'won' ? 1500 : 500;
@@ -146,26 +152,17 @@ export default function App() {
     const handleNextLevel = useCallback(() => {
         if (isNavigatingRef.current) return;
 
-        try {
-            const nextNum = nextLevel();
-            if (nextNum !== null) {
-                // UI Protection: Close modal and set local navigating flag
-                isNavigatingRef.current = true;
-                setShowModal(false);
-                closeHint();
+        const nextNum = nextLevel();
+        if (nextNum !== null) {
+            isNavigatingRef.current = true;
+            setShowModal(false);
+            closeHint();
 
-                // Pure Navigation Flow:
-                // 1. We navigate the browser
-                // 2. The levelNumber param change triggers useEffect #3
-                // 3. useEffect #3 calls loadLevel()
-                setTimeout(() => {
-                    navigate(`/level/${nextNum}`, { replace: true });
-                    isNavigatingRef.current = false;
-                }, 50);
-            }
-        } catch (e) {
-            console.error("Next level navigation failed:", e);
-            isNavigatingRef.current = false;
+            // Navigate only. Effect #3 will handle the load.
+            setTimeout(() => {
+                navigate(`/level/${nextNum}`, { replace: true });
+                isNavigatingRef.current = false;
+            }, 50);
         }
     }, [nextLevel, navigate, closeHint]);
 
@@ -175,17 +172,9 @@ export default function App() {
         restartLevel();
     }, [restartLevel, closeHint]);
 
-    const handleClearToast = useCallback(() => {
-        clearToast();
-    }, [clearToast]);
-
-    const handleShakeEnd = useCallback(() => {
-        clearShake();
-    }, [clearShake]);
-
-    const handleRevealEnd = useCallback(() => {
-        clearReveal();
-    }, [clearReveal]);
+    const handleClearToast = useCallback(() => clearToast(), [clearToast]);
+    const handleShakeEnd = useCallback(() => clearShake(), [clearShake]);
+    const handleRevealEnd = useCallback(() => clearReveal(), [clearReveal]);
 
     const handleHelpClick = useCallback(() => {
         closeHint();
@@ -201,8 +190,8 @@ export default function App() {
 
     // --- RENDER GUARDS ---
 
-    // 1. Initial Data Fetching Guard
-    if (!initialized || levels.length === 0) {
+    // 1. Loading Guard
+    if (!initialized || levels.length === 0 || !levelNumber) {
         return (
             <div className="flex h-screen items-center justify-center bg-background-light">
                 <div className="text-center">
@@ -215,10 +204,9 @@ export default function App() {
 
     const currentLevelData = levels.find((l) => l.level === currentLevel);
 
-    // 2. Invalid Level State Guard (Auto-correction)
-    if (!currentLevelData) {
-        navigate("/level/1", { replace: true });
-        return null;
+    // 2. Data Mismatch Guard
+    if (!currentLevelData && initialized) {
+        return null; // Let the auto-correct effect handle it
     }
 
     return (
@@ -260,7 +248,7 @@ export default function App() {
                     currentLevel={currentLevel}
                     totalLevels={levels.length}
                     evaluations={evaluations}
-                    targetWord={currentLevelData.word}
+                    targetWord={currentLevelData?.word || ''}
                     guessCount={guesses.length}
                     maxAttempts={maxAttempts}
                     onNextLevel={handleNextLevel}
@@ -271,7 +259,7 @@ export default function App() {
 
             <HintModal
                 isOpen={isHintOpen}
-                hint={currentLevelData.hint}
+                hint={currentLevelData?.hint || ''}
                 onClose={closeHint}
             />
 

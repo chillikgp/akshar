@@ -47,7 +47,7 @@ interface GameState {
     isHintOpen: boolean;
 
     // Actions
-    initGame: (urlLevel?: number) => Promise<void>;
+    initGame: () => Promise<void>;
     loadLevel: (levelNum: number) => void;
     addLetter: (letter: string) => void;
     removeLetter: () => void;
@@ -100,44 +100,16 @@ export const useGameStore = create<GameState>((set, get) => ({
     revealingRow: null,
     isHintOpen: false,
 
-    initGame: async (urlLevel?: number) => {
+    initGame: async () => {
         try {
             const levels = await parseLevels();
             const savedCompleted = loadFromStorage<number[]>(STORAGE_KEYS.completedLevels, []);
             const cleanedCompleted = savedCompleted.filter((l) => l <= levels.length);
 
-            // Determine which level to load
-            let targetLevel: number;
-
-            if (urlLevel !== undefined) {
-                // URL takes priority — validate it
-                targetLevel = (urlLevel >= 1 && urlLevel <= levels.length) ? urlLevel : 1;
-            } else {
-                // Fall back to saved progress
-                const savedLevel = loadFromStorage<number>(STORAGE_KEYS.currentLevel, 1);
-                targetLevel = (savedLevel >= 1 && savedLevel <= levels.length) ? savedLevel : 1;
-            }
-
-            const level = levels.find((l) => l.level === targetLevel);
-            if (!level) return;
-
-            saveToStorage(STORAGE_KEYS.currentLevel, targetLevel);
-
             set({
                 levels,
                 initialized: true,
-                currentLevel: targetLevel,
-                targetConsonants: level.consonants,
-                targetKey: level.consonants.join('|'),
-                matraPattern: level.matraPattern,
-                maxAttempts: level.consonants.length + 2,
-                guesses: [],
-                evaluations: [],
-                currentGuess: [],
-                status: 'playing',
-                keyboardState: {},
                 completedLevels: cleanedCompleted,
-                isHintOpen: false,
             });
         } catch (error) {
             console.error("Game initialization failed:", error);
