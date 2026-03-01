@@ -83,19 +83,21 @@ export default function App() {
         if (initialized && levels.length > 0 && levelNumber) {
             const urlLevel = parseInt(levelNumber, 10);
 
-            // Validation & Parsing
-            if (isNaN(urlLevel) || urlLevel < 1 || urlLevel > levels.length) {
-                // Invalid URL → Auto-correct to level 1
-                navigate('/level/1', { replace: true });
-                return;
-            }
-
-            // Sync Store with URL if different
+            // Sync Store with URL if different OR if level data is not yet loaded
+            const dataMissing = targetConsonants.length === 0;
+            if (!isNaN(urlLevel) && (urlLevel !== currentLevel || dataMissing)) {
+                if (urlLevel >= 1 && urlLevel <= levels.length) {
+                    loadLevel(urlLevel);
+                } else {
+                    // Invalid URL → Auto-correct to level 1
+                    navigate('/level/1', { replace: true });
+                }
+            } // Sync Store with URL if different
             if (urlLevel !== currentLevel) {
                 loadLevel(urlLevel);
             }
         }
-    }, [initialized, levels, levelNumber, currentLevel, loadLevel, navigate]);
+    }, [initialized, levels, levelNumber, currentLevel, loadLevel, navigate, targetConsonants.length]);
 
     // First visit help
     useEffect(() => {
