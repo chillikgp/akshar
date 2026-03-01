@@ -52,7 +52,7 @@ export default function App() {
         clearReveal,
     } = useGameStore();
 
-    // Initialize game on mount with URL level (if present)
+    // 1. Initialize game data (CSV load)
     useEffect(() => {
         if (!initializedRef.current) {
             initializedRef.current = true;
@@ -61,9 +61,9 @@ export default function App() {
         }
     }, [initGame, levelNumber]);
 
-    // Sync URL when level changes after init (e.g. navigating to `/` should redirect to current level)
+    // 2. Sync URL when status or level changes internally (e.g. init finish)
     useEffect(() => {
-        if (initialized) {
+        if (initialized && levels.length > 0) {
             const expectedPath = `/level/${currentLevel}`;
             const currentPath = levelNumber ? `/level/${levelNumber}` : '/';
 
@@ -71,19 +71,21 @@ export default function App() {
                 navigate(expectedPath, { replace: true });
             }
         }
-    }, [initialized, currentLevel, levelNumber, navigate]);
+    }, [initialized, currentLevel, levelNumber, levels.length, navigate]);
 
-    // Handle URL changes after initialization (user manually changes URL)
+    // 3. SINGLE SOURCE OF TRUTH: Handle URL changes and trigger loadLevel
     useEffect(() => {
-        if (initialized && levelNumber) {
+        // Only load if initialized AND levels are actually loaded in the store
+        if (initialized && levels.length > 0 && levelNumber) {
             const urlLevel = parseInt(levelNumber, 10);
+
+            // Strictly the ONLY place loadLevel is called based on Route Param
             if (!isNaN(urlLevel) && urlLevel !== currentLevel) {
                 if (urlLevel >= 1 && urlLevel <= levels.length) {
                     loadLevel(urlLevel);
                 } else {
-                    // Invalid level → redirect to level 1
+                    // Invalid level → redirect to level 1 (Effect will re-run)
                     navigate('/level/1', { replace: true });
-                    loadLevel(1);
                 }
             }
         }
@@ -100,7 +102,7 @@ export default function App() {
         }
     }, [initialized]);
 
-    // Confetti trigger: only when status transitions from "playing" → "won"
+    // Confetti trigger
     useEffect(() => {
         if (prevStatusRef.current === 'playing' && status === 'won') {
             const timer = setTimeout(() => {
@@ -129,12 +131,9 @@ export default function App() {
         }
     }, [status]);
 
-    const handleKeyPress = useCallback(
-        (key: string) => {
-            addLetter(key);
-        },
-        [addLetter]
-    );
+    const handleKeyPress = useCallback((key: string) => {
+        addLetter(key);
+    }, [addLetter]);
 
     const handleEnter = useCallback(() => {
         submitGuess();
@@ -150,15 +149,19 @@ export default function App() {
         try {
             const nextNum = nextLevel();
             if (nextNum !== null) {
+                // UI Protection: Close modal and set local navigating flag
                 isNavigatingRef.current = true;
                 setShowModal(false);
                 closeHint();
 
-                // Allow state cleanup before navigation
+                // Pure Navigation Flow:
+                // 1. We navigate the browser
+                // 2. The levelNumber param change triggers useEffect #3
+                // 3. useEffect #3 calls loadLevel()
                 setTimeout(() => {
                     navigate(`/level/${nextNum}`, { replace: true });
                     isNavigatingRef.current = false;
-                }, 100);
+                }, 50);
             }
         } catch (e) {
             console.error("Next level navigation failed:", e);
@@ -196,8 +199,10 @@ export default function App() {
         }
     }, [status, openHint]);
 
-    // Loading state
-    if (!initialized) {
+    // --- RENDER GUARDS ---
+
+    // 1. Initial Data Fetching Guard
+    if (!initialized || levels.length === 0) {
         return (
             <div className="flex h-screen items-center justify-center bg-background-light">
                 <div className="text-center">
@@ -210,16 +215,10 @@ export default function App() {
 
     const currentLevelData = levels.find((l) => l.level === currentLevel);
 
-    // Defensive check: if we somehow lost the level data during transition
-    if (initialized && !currentLevelData) {
-        return (
-            <div className="flex h-screen items-center justify-center bg-background-light">
-                <div className="text-center">
-                    <h1 className="text-4xl font-extrabold text-primary mb-2">अक्षर</h1>
-                    <p className="text-slate-500 text-sm">प्रतीक्षा करें...</p>
-                </div>
-            </div>
-        );
+    // 2. Invalid Level State Guard (Auto-correction)
+    if (!currentLevelData) {
+        navigate("/level/1", { replace: true });
+        return null;
     }
 
     return (
@@ -261,7 +260,7 @@ export default function App() {
                     currentLevel={currentLevel}
                     totalLevels={levels.length}
                     evaluations={evaluations}
-                    targetWord={currentLevelData?.word || ''}
+                    targetWord={currentLevelData.word}
                     guessCount={guesses.length}
                     maxAttempts={maxAttempts}
                     onNextLevel={handleNextLevel}
@@ -272,7 +271,7 @@ export default function App() {
 
             <HintModal
                 isOpen={isHintOpen}
-                hint={currentLevelData?.hint || ''}
+                hint={currentLevelData.hint}
                 onClose={closeHint}
             />
 

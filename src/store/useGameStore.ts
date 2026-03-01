@@ -144,40 +144,6 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
     },
 
-    loadLevel: (levelNum: number) => {
-        try {
-            const { levels } = get();
-            if (levels.length === 0) return;
-
-            const validLevel = (levelNum >= 1 && levelNum <= levels.length) ? levelNum : 1;
-            const level = levels.find((l) => l.level === validLevel);
-
-            if (!level) {
-                console.error(`Level ${validLevel} not found in store.`);
-                return;
-            }
-
-            saveToStorage(STORAGE_KEYS.currentLevel, validLevel);
-
-            set({
-                currentLevel: validLevel,
-                targetConsonants: level.consonants,
-                targetKey: level.consonants.join('|'),
-                matraPattern: level.matraPattern,
-                maxAttempts: level.consonants.length + 2,
-                guesses: [],
-                evaluations: [],
-                currentGuess: [],
-                status: 'playing',
-                keyboardState: {},
-                revealingRow: null,
-                isHintOpen: false,
-            });
-        } catch (error) {
-            console.error("Level loading failed:", error);
-        }
-    },
-
     addLetter: (letter: string) => {
         const { currentGuess, targetConsonants, status } = get();
         if (status !== 'playing') return;
@@ -272,6 +238,43 @@ export const useGameStore = create<GameState>((set, get) => ({
         // Return the number but do NOT update state here.
         // App.tsx effect will handle navigation and loadLevel.
         return nextLevelNum;
+    },
+
+    loadLevel: (levelNum: number) => {
+        try {
+            const { levels } = get();
+
+            // Critical Guard: If levels haven't been fetched yet, return.
+            // App.tsx effect will call it again once levels are initialized.
+            if (!levels || levels.length === 0) return;
+
+            const validLevel = (levelNum >= 1 && levelNum <= levels.length) ? levelNum : 1;
+            const level = levels.find((l) => l.level === validLevel);
+
+            if (!level) {
+                console.error(`Level ${validLevel} not found in store.`);
+                return;
+            }
+
+            saveToStorage(STORAGE_KEYS.currentLevel, validLevel);
+
+            set({
+                currentLevel: validLevel,
+                targetConsonants: level.consonants,
+                targetKey: level.consonants.join('|'),
+                matraPattern: level.matraPattern,
+                maxAttempts: level.consonants.length + 2,
+                guesses: [],
+                evaluations: [],
+                currentGuess: [],
+                status: 'playing',
+                keyboardState: {},
+                revealingRow: null,
+                isHintOpen: false,
+            });
+        } catch (error) {
+            console.error("Level loading failed:", error);
+        }
     },
 
     restartLevel: () => {
